@@ -1,0 +1,106 @@
+user_model
+{
+    "api_user":"{{username}}",
+    "api_password":"{{password}}",
+    "api_secret":"{{secret_key}}"}
+
+
+
+Theatre_info 
+    theatre_id
+    theaterCode
+
+
+theatre_location
+    location_id
+    location_name
+    address
+    vat_number
+    contact
+
+
+movie
+    movie_id
+    movie_name 
+    movie_type
+    duration
+    image
+
+
+theatre_audi
+    theatre_id
+    audi_id
+    audi_name
+    audi_total_seat = row * column 
+    row
+    column 
+
+show 
+    show_id
+    movie_id
+    audi_id
+    startTime
+    show_status
+    ticket price 
+    
+
+seat_detail
+    audi_id
+    seat_id
+    show_id
+    row
+    column
+    seat_status
+    ticketTypeID
+    isActive
+
+seat_hold
+    seat_hold_id
+    username
+    seat_id
+
+
+purchase 
+    purchase_id
+    show_id
+    username
+        
+
+
+ticket_generate 
+    ticket_generate_id 
+    show_name
+    time
+    audi
+    seat_no
+    price
+    ticket_code - unique - bar code / qr code 
+
+
+transaction_detail
+    txn_id
+    purchase_id
+    ticket_number
+
+
+
+
+
+docker exec -it fastapi-postgres bash
+psql -U postgres
+\l - list db 
+\du - list users 
+\c fastapi_database 
+\dt - shows tables
+
+docker compose up
+
+docker build . -t fast              creates an image 
+docker run -p 8000:8000 fast        run the image 
+
+docker-compose build 
+docker compose up                   
+
+
+
+

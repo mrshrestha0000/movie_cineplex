@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: FastAPI",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "main:app",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                "8000",
+                "--reload",
+            ],
+            // "cwd": "${}",
+        
+
+            "env": {"PYTHONPATH": "/home/saphal/Desktop/wakanda/movie/env/bin/python3"},
+            
+            "jinja": true,
+            "justMyCode": true
+        }
+    ]
+}
