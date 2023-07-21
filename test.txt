@@ -86,7 +86,7 @@ transaction_detail
 
 
 
-docker exec -it fastapi-postgres bash
+docker exec -it movie_postgres_1 bash
 psql -U postgres
 \l - list db 
 \du - list users 

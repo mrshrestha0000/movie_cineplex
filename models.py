@@ -5,124 +5,108 @@
 # from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
 
 import datetime as _dt
-import sqlalchemy as _sql 
-
+import sqlalchemy as sqlalchemy 
 import database as _database 
+from sqlalchemy.orm import relationship, Mapped
 
-
-
-# Base = declarative_base()
-
-
-class contact(_database.Base):
-    __tablename__ = "contact"
-
-    id= _sql.Column(_sql.Integer, primary_key=True, index=True)
-    first_name = _sql.Column(_sql.String, index=True)
-    last_name = _sql.Column(_sql.String, index=True)
-    email = _sql.Column(_sql.String, index=True, unique=True)
-    phone_number = _sql.Column(_sql.String, index=True, unique=True)
-    date_created = _sql.Column(_sql.DateTime, default=_dt.datetime.utcnow)
 
 class theatre_info_model(_database.Base):
     __tablename__ = "theatre_info"
 
-    # theatre_id = _sql.Column(_sql.Integer,primary_key=True, autoincrement=True)
-    theatre_id = _sql.Column(_sql.Integer,primary_key=True)
+    theatre_id : Mapped[int] = sqlalchemy.Column(sqlalchemy.Integer,primary_key=True, autoincrement=True)
 
-    theatre_code = _sql.Column(_sql.String)
-    theatre_name = _sql.Column(_sql.String) 
-    location_id = _sql.Column(_sql.Integer)
-    location_name = _sql.Column(_sql.String)
-    address = _sql.Column(_sql.String)
-    vat_number = _sql.Column(_sql.String)
-    contact = _sql.Column(_sql.String)
+    theatre_code = sqlalchemy.Column(sqlalchemy.String)
+    theatre_name = sqlalchemy.Column(sqlalchemy.String) 
+    location_id = sqlalchemy.Column(sqlalchemy.Integer)
+    location_name = sqlalchemy.Column(sqlalchemy.String)
+    address = sqlalchemy.Column(sqlalchemy.String)
+    vat_number = sqlalchemy.Column(sqlalchemy.String)
+    contact = sqlalchemy.Column(sqlalchemy.String)
 
 
-# class theatre_auth_model(Base):
-#     __tablename__ = "theatre_auth"
+class theatre_auth_model(_database.Base):
+    __tablename__ = "theatre_auth"
 
-#     theatre_id : Column(Integer, ForeignKey('theatre_info.theatre_id'))
-#     api_user : Column(String) 
-#     api_password : Column(String) 
-#     api_secret : Column(String) 
+    theatre_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_info.theatre_id'), primary_key=True)
+    api_username = sqlalchemy.Column(sqlalchemy.String) 
+    api_password = sqlalchemy.Column(sqlalchemy.String) 
+    api_secret = sqlalchemy.Column(sqlalchemy.String) 
     
-#     relation = relationship("theatre_info_model", backref="theatre_auth")
+    relation: Mapped['theatre_info_model'] = relationship("theatre_info_model", backref="theatre_auth")
 
 
-# class theatre_audi_model(Base):
-#     __tbalename__ = "theatre_audi"
+class theatre_audi_model(_database.Base):
+    __tablename__ = "theatre_audi"
 
-#     theatre_id : Column(Integer, ForeignKey('theatre_info.theatre_id'))
-#     audi_id : Column(Integer, primary_key = True, autoincrement=True)
-#     audi_name : Column(String)
-#     audi_total_seat : Column(Integer)
-#     row : Column(Integer)
-#     column : Column(Integer)
+    theatre_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_info.theatre_id'))
+    audi_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key = True, autoincrement=True)
+    audi_name = sqlalchemy.Column(sqlalchemy.String)
+    audi_total_seat = sqlalchemy.Column(sqlalchemy.Integer)
+    row = sqlalchemy.Column(sqlalchemy.Integer)
+    column = sqlalchemy.Column(sqlalchemy.Integer)
+    audi_seat_type = sqlalchemy.Column(sqlalchemy.String)
 
-#     relation = relationship("theatre_info_model", backref="theatre_audi")
-
-
-# class movie_model(Base):
-#     __tablename__ = "movie"
-
-#     theatre_id : Column(Integer, ForeignKey('theatre_info.theatre_id'))
-
-#     movie_id : Column(Integer, primary_key=True)
-#     movie_name : Column(String)
-#     movie_type : Column(String)
-#     duration : Column(int) # in min
-#     image : Column(String) # Path to image file
-
-#     relation = relationship("theatre_info_model", backref="movie")
+    relation:Mapped['theatre_info_model'] = relationship("theatre_info_model", backref="theatre_audi")
 
 
-# class show_model(Base):
-#     __tablename__ = "show"
+class seat_detail_model(_database.Base):
+    __tablename__ = "seat_detail"
 
-#     movie_id : Column(Integer, ForeignKey('movie.movie_id'))
-#     audi_id : Column(Integer, ForeignKey('theatre_audi.audi_id'))
+    seat_name = sqlalchemy.Column(sqlalchemy.String, primary_key = True, unique = True)
+    theatre_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_info.theatre_id'))    
+    seat_id = sqlalchemy.Column(sqlalchemy.String)
+    audi_id =  sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_audi.audi_id')) 
+    row = sqlalchemy.Column(sqlalchemy.Integer)
+    column = sqlalchemy.Column(sqlalchemy.Integer)
+    is_active = sqlalchemy.Column(sqlalchemy.Boolean)
+    seat_type = sqlalchemy.Column(sqlalchemy.String)   # 1 - platinium , 2 - gold 
+    total_seat = sqlalchemy.Column(sqlalchemy.Integer)
 
-#     show_id : Column(Integer, primary_key = True, autoincrement = True) 
-#     startTime : Column(DateTime)
-#     show_status : Column(String)
-#     ticket_price : Column(float)
-
-#     movie = relationship("theatre_info_model", backref="show") 
-#     theatre_audi = relationship("theatre_audi_model", backref="show")
+    relation:Mapped ['theatre_info_model'] = relationship("theatre_info_model", backref="seat_detail") 
+    relation:Mapped ['theatre_audi_model'] = relationship("theatre_audi_model", backref="seat_detail")
 
 
-# class seat_detail_model(Base):
-#     __tablename__ = "seat_detail"
+class movie_model(_database.Base):
+    __tablename__ = "movie"
 
-#     seat_id : Column(Integer)
-#     audi_id :  Column(Integer, ForeignKey('theatre_audi.audi_id')) 
-#     show_id : Column(Integer, ForeignKey('show.show_id'))
-#     row : Column(Integer)
-#     colon : Column(Integer)
-#     is_active : Column(bool)
-#     ticket_type : Column(Integer)   # 1 - platinium , 2 - gold 
-#     price : Column (Float)
+    theatre_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_info.theatre_id'))
+    movie_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    movie_name = sqlalchemy.Column(sqlalchemy.String)
+    movie_type = sqlalchemy.Column(sqlalchemy.String)
+    duration = sqlalchemy.Column(sqlalchemy.Integer) # in min
+    image = sqlalchemy.Column(sqlalchemy.String) # Path to image file
 
-#     audi = relationship("theatre_audi_model", backref="seat_detail")
-#     show_id = relationship("show_model", backref="seat_detail")
+    relation:Mapped['theatre_info_model'] = relationship("theatre_info_model", backref="movie")
+
+
+class show_model(_database.Base):
+    __tablename__ = "show"
+
+    theatre_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_info.theatre_id'))
+    movie_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('movie.movie_id'))
+    audi_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_audi.audi_id'))
+    show_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key = True, autoincrement = True) 
+    startTime = sqlalchemy.Column(sqlalchemy.DateTime)
+    show_status = sqlalchemy.Column(sqlalchemy.String)   # active / inactive
+    ticket_price = sqlalchemy.Column(sqlalchemy.Float)
+
+
+    relation:Mapped ['theatre_info_model'] = relationship("theatre_info_model", backref="show") 
+    relation:Mapped['theatre_audi_model'] = relationship("theatre_audi_model", backref="show")
+
+
 
     
-# class seat_hold_model(Base):
-#     __tablename__ = "seat_hold"
+class seat_hold_model(_database.Base):
+    __tablename__ = "seat_hold"
 
-#     seat_hold_id : Column(Integer, primary_key = True, autoincrement=True)
-    
-#     seat_id : Column(Integer, ForeignKey('seat_detail.seat_id'))
-#     audi_id :  Column(Integer, ForeignKey('theatre_audi.audi_id')) 
-#     show_id : Column(Integer, ForeignKey('show.show_id'))
-#     exiary_time : Column(DateTime)
+    seat_hold_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement= True)
+    seat_name = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('seat_detail.seat_name'))   
+    exiary_time = sqlalchemy.Column(sqlalchemy.DateTime)
+    transaction_id = sqlalchemy.Column(sqlalchemy.Integer)
 
-#     transaction_id : Column(Integer)
+    relation:Mapped['seat_detail_model'] = relationship("seat_detail_model", backref="seat_hold")
 
-#     seat_id = relationship("seat_detail_model", backref='seat_hold')
-#     audi_id = relationship("theatre_audi_model", backref="seat_hold")
-#     show_id = relationship("show_model", backref="seat_hold")
 
 
 # class purchase_ticket_model(Base):
