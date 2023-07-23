@@ -6,7 +6,7 @@
 
 import datetime as _dt
 import sqlalchemy as sqlalchemy 
-import database as _database 
+import database as _database  
 from sqlalchemy.orm import relationship, Mapped
 
 
@@ -61,6 +61,7 @@ class seat_detail_model(_database.Base):
     is_active = sqlalchemy.Column(sqlalchemy.Boolean)
     seat_type = sqlalchemy.Column(sqlalchemy.String)   # 1 - platinium , 2 - gold 
     total_seat = sqlalchemy.Column(sqlalchemy.Integer)
+    seat_status = sqlalchemy.Column(sqlalchemy.Integer)   # 1 : empty , 2 booked . 3: cannot book , 4 : on hold 
 
     relation:Mapped ['theatre_info_model'] = relationship("theatre_info_model", backref="seat_detail") 
     relation:Mapped ['theatre_audi_model'] = relationship("theatre_audi_model", backref="seat_detail")
@@ -95,6 +96,24 @@ class show_model(_database.Base):
     relation:Mapped['theatre_audi_model'] = relationship("theatre_audi_model", backref="show")
 
 
+class show_seat_detail_model(_database.Base):
+    __tablename__ = "show_seat_detail"
+
+    show_id = sqlalchemy.Column(sqlalchemy.Integer)
+    seat_name = sqlalchemy.Column(sqlalchemy.String, primary_key = True, unique = True)
+    theatre_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_info.theatre_id'))    
+    seat_id = sqlalchemy.Column(sqlalchemy.String)
+    audi_id =  sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_audi.audi_id')) 
+    row = sqlalchemy.Column(sqlalchemy.Integer)
+    column = sqlalchemy.Column(sqlalchemy.Integer)
+    is_active = sqlalchemy.Column(sqlalchemy.Boolean)
+    seat_type = sqlalchemy.Column(sqlalchemy.String)   # 1 - platinium , 2 - gold 
+    total_seat = sqlalchemy.Column(sqlalchemy.Integer)
+    seat_status = sqlalchemy.Column(sqlalchemy.Integer)   # 1 : empty , 2 booked . 3: cannot book , 4 : on hold 
+
+    relation:Mapped ['theatre_info_model'] = relationship("theatre_info_model", backref="show_seat_detail") 
+    relation:Mapped ['theatre_audi_model'] = relationship("theatre_audi_model", backref="show_seat_detail")
+
 
     
 class seat_hold_model(_database.Base):
@@ -102,27 +121,29 @@ class seat_hold_model(_database.Base):
 
     seat_hold_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement= True)
     seat_name = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('seat_detail.seat_name'))   
-    exiary_time = sqlalchemy.Column(sqlalchemy.DateTime)
-    transaction_id = sqlalchemy.Column(sqlalchemy.Integer)
+    show_id = sqlalchemy.Column(sqlalchemy.Integer)
+    exipry_time = sqlalchemy.Column(sqlalchemy.DateTime)
+    transaction_id = sqlalchemy.Column(sqlalchemy.String)
+    api_username = sqlalchemy.Column(sqlalchemy.String)
 
     relation:Mapped['seat_detail_model'] = relationship("seat_detail_model", backref="seat_hold")
 
 
 
-# class purchase_ticket_model(Base):
-#     __tablename__ = "purchase_ticket"
+class purchase_ticket_model(_database.Base):
+    __tablename__ = "purchase_ticket"
 
-#     ticket_id : Column(Integer, primary_key = True, autoincrement = True)
-#     amount : Column(float)
-#     transaction_id : Column(Integer)
+    ticket_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key = True, autoincrement = True)
+    amount = sqlalchemy.Column(sqlalchemy.Float)
+    transaction_id = sqlalchemy.Column(sqlalchemy.Integer)
+    seat_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('seat_detail.seat_id'))
+    audi_id =  sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('theatre_audi.audi_id')) 
+    show_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('show.show_id'))
+    api_username = sqlalchemy.Column(sqlalchemy.String)
 
-#     seat_id : Column(Integer, ForeignKey('seat_detail.seat_id'))
-#     audi_id :  Column(Integer, ForeignKey('theatre_audi.audi_id')) 
-#     show_id : Column(Integer, ForeignKey('show.show_id'))
-
-#     seat_id = relationship("seat_detail_model", backref='purchase_ticket')
-#     audi_id = relationship("theatre_audi_model", backref="purchase_ticket")
-#     show_id = relationship("show_model", backref="purchase_ticket")
+    relation:Mapped ['seat_detail_model'] = relationship("seat_detail_model", backref='purchase_ticket')
+    relation:Mapped ['theatre_audi_model'] = relationship("theatre_audi_model", backref="purchase_ticket")    
+    relation:Mapped ['show_model'] = relationship("show_model", backref="purchase_ticket")
 
 
         

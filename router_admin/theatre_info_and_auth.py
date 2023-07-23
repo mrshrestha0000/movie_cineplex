@@ -1,12 +1,12 @@
 from fastapi import FastAPI , Depends, APIRouter
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
-from router.auth import auth_router
-from router.create_token import token_router
+from router_admin.auth import auth_router
+from router_admin.create_token import token_router
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 import models
-from router.base import get_db
+from router_admin.base import get_db
 import random, string
 
 

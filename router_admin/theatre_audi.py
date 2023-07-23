@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 
 theatre_audi_router_and_seat_detail = APIRouter()
-auth = auth_class()
+auth = auth_class() 
 
 def seat_detail(detail, db):
 
@@ -52,6 +52,7 @@ def seat_detail(detail, db):
             seat_detail_model.is_active = True
             seat_detail_model.seat_type = audi_seat_type
             seat_detail_model.total_seat = total_seat_number 
+            seat_detail_model.seat_status = int (1)
 
             db.add(seat_detail_model)
             db.commit()
@@ -66,7 +67,8 @@ def seat_detail(detail, db):
                 "column":seat_detail_model.column,
                 "is_active":seat_detail_model.is_active,
                 "seat_type":seat_detail_model.seat_type,
-                "total_seat":seat_detail_model.total_seat
+                "total_seat":seat_detail_model.total_seat,
+                "seat_status": seat_detail_model.seat_status
             }
 
             seat_detail_data_json.append(single_seat_data)
@@ -122,5 +124,10 @@ def theatre_audi(
         "audi_data":theatre_audi_data_json, 
         "seat_detail":seat_detail_data
     }, status_code=200)
+
+
+
+
+    
 
     

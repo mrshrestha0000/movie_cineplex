@@ -11,7 +11,56 @@ from datetime import datetime
 show_router = APIRouter()
 auth = auth_class()
 
+def show_seat_detail(detail, db):
 
+    seat_detail_model = db.query(models.seat_detail_model).filter(models.seat_detail_model.theatre_id == detail['theatre_id'] and models.seat_detail_model.audi_id == detail['audi_id'])
+    
+
+    data = []
+
+    if seat_detail_model is None:
+        raise Exception 
+    
+    if seat_detail_model is not None:
+
+        for i in seat_detail_model:
+
+            show_seat_detail_model = models.show_seat_detail_model()
+
+            show_seat_detail_model.show_id = detail['show_id'] 
+            show_seat_detail_model.seat_name = i.seat_name + '-' + str(detail['show_id'])
+            show_seat_detail_model.theatre_id = i.theatre_id 
+            show_seat_detail_model.seat_id = i.seat_id 
+            show_seat_detail_model.audi_id = i.audi_id 
+            show_seat_detail_model.row = i.row 
+            show_seat_detail_model.column = i.column 
+            show_seat_detail_model.is_active = i.is_active 
+            show_seat_detail_model.seat_type = i.seat_type 
+            show_seat_detail_model.total_seat = i.total_seat 
+            show_seat_detail_model.seat_status = i.seat_status
+                
+            db.add(show_seat_detail_model)
+            db.commit()
+
+            show_seat_detail_json = {
+                "show_id":show_seat_detail_model.show_id,
+                "seat_name":show_seat_detail_model.seat_name,
+                "theatre_id":show_seat_detail_model.theatre_id,
+                "seat_id":show_seat_detail_model.seat_id,
+                "audi_id":show_seat_detail_model.audi_id,
+                "row":show_seat_detail_model.row,
+                "column":show_seat_detail_model.column,
+                "is_active":show_seat_detail_model.is_active,
+                "seat_type":show_seat_detail_model.seat_type,
+                "total_seat":show_seat_detail_model.total_seat,
+                "seat_status":show_seat_detail_model.seat_status
+            }
+
+            data.append(show_seat_detail_json)
+
+        return data
+
+        
 class show_schema(BaseModel):
     movie_id : int 
     audi_id : int
@@ -59,10 +108,12 @@ def theatre_audi(
                             "ticket_price":details.ticket_price
                         }
 
-                        theatre_id = authenticate['theatre_id']
+                        show_seat = show_seat_detail(show_info_json, db)
+                        # theatre_id = authenticate['theatre_id']
                         return JSONResponse(content={
                             "status":999,
-                            "show_info":show_info_json
+                            "show_info":show_info_json,
+                            "seats":show_seat
                         }, status_code=200)
 
                     else:
