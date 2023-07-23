@@ -107,8 +107,6 @@ def seat_hold(details : seat_hold_schema,
 
     except Exception as e:
         # import pdb ; pdb.set_trace()
-    
-
         return JSONResponse(content={
                 "error":str(e),
                 "status":999
@@ -121,14 +119,13 @@ def seat_hold_details_function(authenticate, details, db):
 
     seat_hold_data = []
     seat_name=details.seat_name  
-    print (seat_name)
 
     model = []
 
     for i in range(len(seat_name)):
         seat_hold_model = db.query(models.seat_hold_model).filter(models.seat_hold_model.seat_name == seat_name[i]).all()
         show_model = db.query(models.show_model).filter(models.show_model.show_id == details.show_id).first()
-        print (seat_hold_model)
+        # print (seat_hold_model)
 
         model.append(seat_hold_model)
 
@@ -142,15 +139,16 @@ def seat_hold_details_function(authenticate, details, db):
                 }
                 seat_hold_data.append(single_seat_hold_data)
 
-
-
-    # print (model)
-
     if any(not response for response in model):
-        raise HTTPException (status_code=400, detail="Selected seats not found.")
-    
+        raise HTTPException (status_code=400, detail="Invalid seat_name.")   
+    elif seat_hold_data == []:
+        raise HTTPException (status_code=400, detail="Show id or txn id mismatch,")   
     else:
         return seat_hold_data
+    
+
+
+
 
 class seat_hold_detail_schema(BaseModel):
     show_id : int 
