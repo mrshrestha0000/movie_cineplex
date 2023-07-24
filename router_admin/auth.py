@@ -124,7 +124,7 @@ class auth_class():
                 raise HTTPException (status_code=401, detail="Invalid Auth. You are using refresh token.")
 
         except Exception as e:
-            raise HTTPException (status_code=401, detail= str(e))
+            raise HTTPException (status_code=401, detail="Invalid Auth. Seems token has expired.")
 
         db.close()
     

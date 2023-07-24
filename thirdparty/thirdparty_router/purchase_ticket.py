@@ -15,7 +15,7 @@ auth = auth_class()
 
 
 def seat_book_from_audi(details, db):
-    seat_detail_model = models.seat_detail_model()
+    # seat_detail_model = models.seat_detail_model()
     selected_seat_instance = db.query(models.show_seat_detail_model).filter(models.show_seat_detail_model.seat_name == details).first()
     try: 
         if selected_seat_instance is not None:
@@ -30,8 +30,31 @@ def seat_book_from_audi(details, db):
                 raise HTTPException(status_code=400, detail="Cannot purchase ticket because seat is already booked.")               
 
     except Exception as e:
-        return str(e)
+        raise HTTPException(status_code=400, detail="Cannot purchase ticket.")               
+
     
+# show_id
+# seat_name
+# transaction_id
+# api_username
+def purchase_ticket_validation(details , db):
+    purchase_ticket_model = db.query(models.purchase_ticket_model).filter(models.purchase_ticket_model.show_id == details['show_id']).all()
+    purchase_ticket_model_filter_by_api_username = db.query(models.purchase_ticket_model).filter(models.purchase_ticket_model.api_username == details['api_username']).all()
+    for i in purchase_ticket_model:
+        print (details['seat_name'])
+        print (i.seat_name)
+        if details['seat_name'] == i.seat_name:
+            
+            raise HTTPException(status_code=400, detail="Seat already purchased.")   
+        for j in purchase_ticket_model_filter_by_api_username:
+            print (details['transaction_id'])
+            print (j.transaction_id)
+            if str(details['transaction_id']) == str(j.transaction_id):
+                raise HTTPException(status_code=400, detail="Duplicate transaction_id")   
+            
+        return True
+
+
 
 
 
@@ -56,25 +79,29 @@ def purchase_ticket(details : purchase_ticket_schema,
         theatre_audi_model = db.query(models.theatre_audi_model).filter(models.theatre_audi_model.audi_id == audi_id).first()
         movie_model = db.query(models.movie_model).filter(models.movie_model.movie_id == show_model.movie_id).first()
 
-
-        print (seat_hold_data)
-
         amount = 0 
         for i in seat_hold_data:
             amount = i['ticket_price'] + amount
-        
         
         if details.amount == amount:
             ticket_detail = []
 
             for j in seat_hold_data:
+                validate_ticket_purhase_json = {
+                    "show_id":details.show_id,
+                    "seat_name":j['seat_name'],
+                    "transaction_id":details.transaction_id,
+                    "api_username":authenticate['api_username']
+                }
+
+                validate_ticket_purhase_model = purchase_ticket_validation(validate_ticket_purhase_json, db)
 
                 purchase_ticket_model.amount = j['ticket_price']
                 purchase_ticket_model.transaction_id = details.transaction_id
                 purchase_ticket_model.seat_name = j['seat_name']
                 purchase_ticket_model.api_username = authenticate['api_username']
-
-
+                purchase_ticket_model.audi_id = show_model.audi_id
+                purchase_ticket_model.show_id = j['show_id']
                 a = j['seat_name']
                 seat_book_from_audi(a, db)
 
@@ -115,6 +142,7 @@ def purchase_ticket(details : purchase_ticket_schema,
     except Exception as e:
         return JSONResponse(content={
             "error":str(e),
+            "detail":e.detail,
             "status":999
         }, status_code=400)
 
