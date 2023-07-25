@@ -12,6 +12,7 @@ from router_admin.auth import auth_class
 from router_admin.base import get_db
 from thirdparty.thirdparty_models import thirdparty_models
 from datetime import datetime
+from sqlalchemy import and_
 
 auth = auth_class()
 
@@ -19,7 +20,7 @@ get_seat_router = APIRouter()
 
 
 def seat_list(details, db):
-    seat_detail_model = db.query(models.seat_detail_model).filter(models.seat_detail_model.theatre_id == details['theatre_id'] and models.seat_detail_model.audi_id == details['audi_id']).all()
+    seat_detail_model = db.query(models.seat_detail_model).filter(and_(models.seat_detail_model.theatre_id == details['theatre_id'] , models.seat_detail_model.audi_id == details['audi_id'])).all()
     seat_hold_model = db.query(models.seat_hold_model).filter(models.seat_hold_model.show_id == details['show_id']).all()
     purchase_ticket_model = db.query(models.purchase_ticket_model).filter(models.purchase_ticket_model.show_id == details['show_id']).all()
 
@@ -35,8 +36,6 @@ def seat_list(details, db):
         seat_hold_seat_names = {i.seat_name for i in seat_hold_model}
         purchase_ticket_seat_names = {i.seat_name for i in purchase_ticket_model}
 
-        print (seat_hold_seat_names)
-        print (purchase_ticket_seat_names)
 
         for i in seat_detail_model:
             if i.seat_name in seat_hold_seat_names:

@@ -3,34 +3,36 @@ from pydantic import BaseModel
 from router_admin.base import get_db
 from router_admin.auth import auth_class
 from sqlalchemy.orm import session
-import models
+import models, copy
 from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
 # from seat_hold import seat_hold_details_function
 from thirdparty.thirdparty_router.seat_hold import seat_hold_details_function
 from router_admin.create_thirdparty_user import generate_random_alphanumeric
+from sqlalchemy import and_
+from thirdparty.thirdparty_router.seat_hold import seat_hold_details_function
 
 purchase_ticket_router = APIRouter()
 auth = auth_class()
 
 
-def seat_book_from_audi(details, db):
-    # seat_detail_model = models.seat_detail_model()
-    selected_seat_instance = db.query(models.show_seat_detail_model).filter(models.show_seat_detail_model.seat_name == details).first()
-    try: 
-        if selected_seat_instance is not None:
-            print (selected_seat_instance.seat_status)
-            if selected_seat_instance.seat_status == 1 or selected_seat_instance.seat_status == 4:
-                selected_seat_instance.seat_status = int(2)
+# def seat_book_from_audi(details, db):
+#     # seat_detail_model = models.seat_detail_model()
+#     selected_seat_instance = db.query(models.show_seat_detail_model).filter(models.show_seat_detail_model.seat_name == details).first()
+#     try: 
+#         if selected_seat_instance is not None:
+#             print (selected_seat_instance.seat_status)
+#             if selected_seat_instance.seat_status == 1 or selected_seat_instance.seat_status == 4:
+#                 selected_seat_instance.seat_status = int(2)
 
-                db.add(selected_seat_instance)
-                db.commit()
+#                 db.add(selected_seat_instance)
+#                 db.commit()
 
-            else:
-                raise HTTPException(status_code=400, detail="Cannot purchase ticket because seat is already booked.")               
+#             else:
+#                 raise HTTPException(status_code=400, detail="Cannot purchase ticket because seat is already booked.")               
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Cannot purchase ticket.")               
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail="Cannot purchase ticket.")               
 
     
 # show_id
@@ -52,15 +54,27 @@ def purchase_ticket_validation(details , db):
             if str(details['transaction_id']) == str(j.transaction_id):
                 raise HTTPException(status_code=400, detail="Duplicate transaction_id")   
             
+    return True
+
+
+def seat_remove_from_seat_hold(details, db):
+    seat_hold_model = db.query(models.seat_hold_model).filter(and_(models.seat_hold_model.show_id == details['show_id'] , models.seat_hold_model.seat_name == details['seat_name'])).first()
+
+    if seat_hold_model:
+        print ("seat_hold_model",seat_hold_model.__dict__)
+        db.delete(seat_hold_model)
+        db.commit()
         return True
+    
+    else:
+        raise HTTPException(status_code=400, detail="Seat not found in seat hold data.")
 
-
-
+    
 
 
 class purchase_ticket_schema(BaseModel):
     show_id : int 
-    seat_name : list 
+    # seat_name : list 
     transaction_id : str 
     amount : float
 
@@ -82,9 +96,15 @@ def purchase_ticket(details : purchase_ticket_schema,
         amount = 0 
         for i in seat_hold_data:
             amount = i['ticket_price'] + amount
-        
+
+
+        print ("seat_hold_data",seat_hold_data)
+        # print (details.amount)
+        # print (amount)
+
         if details.amount == amount:
             ticket_detail = []
+            purchase_ticket_models = []
 
             for j in seat_hold_data:
                 validate_ticket_purhase_json = {
@@ -93,6 +113,9 @@ def purchase_ticket(details : purchase_ticket_schema,
                     "transaction_id":details.transaction_id,
                     "api_username":authenticate['api_username']
                 }
+
+
+                print ("validate_ticket_purhase_json",validate_ticket_purhase_json)
 
                 validate_ticket_purhase_model = purchase_ticket_validation(validate_ticket_purhase_json, db)
 
@@ -103,16 +126,44 @@ def purchase_ticket(details : purchase_ticket_schema,
                 purchase_ticket_model.audi_id = show_model.audi_id
                 purchase_ticket_model.show_id = j['show_id']
                 a = j['seat_name']
-                seat_book_from_audi(a, db)
+                # seat_book_from_audi(a, db)
 
-                db.add(purchase_ticket_model)
-                db.commit()
 
-                db.refresh(purchase_ticket_model)
-                ticket_id = purchase_ticket_model.ticket_id
+                purchase_ticket_models.append(copy.deepcopy(purchase_ticket_model))
+            
+
+            print ("purchase_ticket_models, ", purchase_ticket_models)
+            # for k in purchase_ticket_models:
+
+            db.add_all(purchase_ticket_models)
+            db.commit()
+
+            for l in purchase_ticket_models:
+                db.refresh(l)
+                # print ("l.seat_name,", l.seat_name)
+                # print ("l.transaction_id",l.transaction_id)
+
+                param_cons_for_seat_hold_rm = {
+                    "seat_name":l.seat_name,
+                    "show_id":l.show_id,
+                    "transaction_id":l.transaction_id
+                }
+                print ("param_cons_for_seat_hold_rm", param_cons_for_seat_hold_rm)
+                seat_remove_from_seat_hold(param_cons_for_seat_hold_rm, db)
+
+
+
+            new_purchase_ticket_model = db.query(models.purchase_ticket_model).filter(models.purchase_ticket_model.transaction_id == details.transaction_id).all()
+            for i in new_purchase_ticket_model:
+
+                # db.add(purchase_ticket_model)
+                # db.commit()
+                # db.refresh(purchase_ticket_model)
+
+                # ticket_id = purchase_ticket_model.ticket_id
 
                 single_ticket_details = {
-                    "ticket_id":ticket_id,
+                    "ticket_id":i.ticket_id,
                     "theatre_name":theatre_info_model.theatre_name,
                     "location_name":theatre_info_model.location_name,
                     "audi_name":theatre_audi_model.audi_name, 
@@ -121,11 +172,11 @@ def purchase_ticket(details : purchase_ticket_schema,
                     "duration":movie_model.duration,
                     "show_date":str(show_model.startTime),
                     "ticket_price":show_model.ticket_price,
-                    "seat_name":j['seat_name']
+                    "seat_name":i.seat_name
                 }
 
                 ticket_detail.append(single_ticket_details)
-
+            
 
             return JSONResponse(content={
                 "transaction_id":details.transaction_id,
@@ -140,9 +191,12 @@ def purchase_ticket(details : purchase_ticket_schema,
             })
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # db.rollback()
+        error_detail = e.detail if hasattr(e, "detail") else str(e)
         return JSONResponse(content={
-            "error":str(e),
-            "detail":e.detail,
+            "error":error_detail,
             "status":999
         }, status_code=400)
 

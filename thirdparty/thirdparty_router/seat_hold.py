@@ -30,9 +30,17 @@ auth = auth_class()
     # movie_id : int 
     # show_id : int 
 
-def validate_seat_avaibility(details, seat_name:list, db):
+def validate_seat_avaibility(details, seat_name:list, db, authenticate):
     for i in range(len(seat_name)):
         list_of_seat = seat_list(details, db)
+        seat_hold_model = db.query(models.seat_hold_model).filter(models.seat_hold_model.transaction_id == details['transaction_id']).all()
+
+        for i in seat_hold_model:
+            if i.api_username == authenticate['api_username']:
+                raise HTTPException (status_code=400, detail="Duplicate txn id.")
+
+
+
         a = []
         for j in list_of_seat:
             if seat_name[i] == j['seat_name']:
@@ -77,10 +85,11 @@ def seat_hold(details : seat_hold_schema,
             "theatre_id" : show_model.theatre_id,
             "audi_id" : show_model.audi_id,  
             "movie_id" : show_model.movie_id,  
-            "show_id" : show_model.show_id  
+            "show_id" : show_model.show_id,
+            "transaction_id":details.transaction_id
             }
 
-        seat_available = validate_seat_avaibility(constructor_for_seat_list, seat_name, db)
+        seat_available = validate_seat_avaibility(constructor_for_seat_list, seat_name, db, authenticate)
 
         for i in range(len(seat_name)):
         
@@ -184,8 +193,12 @@ def seat_hold_details_function(authenticate, details, db):
     if not seat_hold_model:
         raise HTTPException (status_code=400, detail="Show not found.")
     
+    # print ("seat_hold_model",seat_hold_model)
+    
     for i in seat_hold_model:
         if authenticate['api_username']== i.api_username:
+            print ("details.transaction_id",details.transaction_id)
+            print ("i.transaction_id",i.transaction_id)
             if details.transaction_id == i.transaction_id:
                 single_seat_hold_data = {
                     "seat_name":i.seat_name,
@@ -194,10 +207,14 @@ def seat_hold_details_function(authenticate, details, db):
                     "ticket_price":show_model.ticket_price
                 }
                 seat_hold_data.append(single_seat_hold_data)
-            else:
-                raise HTTPException (status_code=400, detail="Invalid transaction_id.")   
+            # else:
+            #     import traceback
+            #     traceback.print_exc()
+            #     raise HTTPException (status_code=400, detail="Invalid transaction_id.")   
         else:
-            raise HTTPException (status_code=400, detail="Invalid api_usernme. Check token passed.")   
+            
+            raise HTTPException (status_code=400, detail="Invalid api_usernme. Check token.")   
+    print ("seat_hold_data", seat_hold_data)
     return seat_hold_data
 
 
@@ -220,8 +237,8 @@ def seat_hold_details(details : seat_hold_detail_schema,
     
     except Exception as e:
         error_detail = e.detail if hasattr(e, "detail") else str(e)
-        import traceback
-        traceback.print_exc()
+        # import traceback
+        # traceback.print_exc()
         return JSONResponse(content={
             "error":error_detail,
             "status":999
