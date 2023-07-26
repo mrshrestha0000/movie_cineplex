@@ -2,8 +2,8 @@ from database import SessionLocal
 
 
 async def get_db():
-    try: 
+    try:
         db = SessionLocal()
-        yield db 
+        yield db
     finally:
         db.close()

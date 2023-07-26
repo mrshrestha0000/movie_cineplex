@@ -1,5 +1,5 @@
 import sqlalchemy as sql
-import sqlalchemy.ext.declarative as declarative 
+import sqlalchemy.ext.declarative as declarative
 import sqlalchemy.orm as _orm
 
 DATABASE_URL = "sqlite:///./movie_database.db"
