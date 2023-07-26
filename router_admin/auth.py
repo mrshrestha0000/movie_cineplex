@@ -1,11 +1,9 @@
-from fastapi import FastAPI, APIRouter, Request, HTTPException, Response
+from fastapi import FastAPI, APIRouter, Request, HTTPException
 import models
-from sqlalchemy.orm import Session
 from database import SessionLocal
 from datetime import datetime, timedelta
 import jwt
 from thirdparty.thirdparty_models import thirdparty_models
-from fastapi.responses import JSONResponse
 
 auth_router = APIRouter()
 app = FastAPI()
