@@ -16,8 +16,13 @@ from thirdparty.thirdparty_router.get_audi import get_theatre_audi_router
 from thirdparty.thirdparty_router.get_movie import get_movie_router
 from thirdparty.thirdparty_router.get_show import get_show_router
 from thirdparty.thirdparty_router.get_seat import get_seat_router
-from thirdparty.thirdparty_router.seat_hold import seat_hold_router
+
+# from thirdparty.thirdparty_router.seat_hold import seat_hold_router
+from thirdparty.thirdparty_router.seat_hold_redis import seat_hold_router
+
 from thirdparty.thirdparty_router.purchase_ticket import purchase_ticket_router
+
+from redis_file import redis_router
 
 
 app = FastAPI(debug=True)
@@ -38,6 +43,8 @@ app.include_router(get_show_router, prefix="/thirdparty")
 app.include_router(get_seat_router, prefix="/thirdparty")
 app.include_router(seat_hold_router, prefix="/thirdparty")
 app.include_router(purchase_ticket_router, prefix="/thirdparty")
+
+app.include_router(redis_router)
 
 
 database.Base.metadata.create_all(bind=engine)

@@ -133,7 +133,7 @@ class seat_hold_model(_database.Base):
         sqlalchemy.Integer, primary_key=True, autoincrement=True
     )
     seat_name = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey("seat_detail.seat_name")
+        sqlalchemy.String, sqlalchemy.ForeignKey("seat_detail.seat_name")
     )
     show_id = sqlalchemy.Column(sqlalchemy.Integer)
     exipry_time = sqlalchemy.Column(sqlalchemy.DateTime)
@@ -154,7 +154,7 @@ class purchase_ticket_model(_database.Base):
     amount = sqlalchemy.Column(sqlalchemy.Float)
     transaction_id = sqlalchemy.Column(sqlalchemy.Integer)
     seat_name = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey("seat_detail.seat_id")
+        sqlalchemy.String, sqlalchemy.ForeignKey("seat_detail.seat_name")
     )
     audi_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey("theatre_audi.audi_id")

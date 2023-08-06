@@ -32,3 +32,24 @@ services:
       - 5011:80
     depends_on:
       - postgres
+
+  redis:
+    image: redis:latest
+    command: redis-server
+    volumes:
+      - redis_data
+    ports:
+      - 6379:6379
+    depends_on:
+      - postgres
+
+  redis_commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=root
+      - HTTP_PASSWORD=root
+    ports:
+      - 8082:8082
+    depends_on:
+      - redis 
