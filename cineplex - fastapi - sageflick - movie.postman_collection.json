@@ -1,0 +1,708 @@
+{
+	"info": {
+		"_postman_id": "c77370bc-d911-4738-9ac2-4f907453030b",
+		"name": "cineplex - fastapi - sageflick - movie",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18322523"
+	},
+	"item": [
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "thirdparty",
+					"item": [
+						{
+							"name": "thirdparty_user_create",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"postman.setEnvironmentVariable(\"thirdparty_api_username\", jsonData.data.api_username);",
+											"postman.setEnvironmentVariable(\"thirdparty_api_password\", jsonData.data.api_password);",
+											"postman.setEnvironmentVariable(\"thirdparty_api_secret\", jsonData.data.api_secret);",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"api_username\":\"saphal\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/admin/create_thirdparty_user",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"admin",
+										"create_thirdparty_user"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Movie and theatre",
+					"item": [
+						{
+							"name": "add_theatre_info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"postman.setEnvironmentVariable(\"admin_theatre_id\", jsonData.data.get_token_info.theatre_id);",
+											"postman.setEnvironmentVariable(\"admin_api_username\", jsonData.data.get_token_info.api_username);",
+											"postman.setEnvironmentVariable(\"admin_api_password\", jsonData.data.get_token_info.api_password);",
+											"postman.setEnvironmentVariable(\"admin_api_secret\", jsonData.data.get_token_info.api_secret);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"theatre_code\": \"001\",\n    \"theatre_name\": \"fcube\",\n    \"location_id\": 1,\n    \"location_name\": \"Chabahil\",\n    \"address\": \"Kathmandu\",\n    \"vat_number\": \"0001\",\n    \"contact\": \"9840415403\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8000/admin/add_theatre_info/",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"admin",
+										"add_theatre_info",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "generate token_for_admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"postman.setEnvironmentVariable(\"token\", jsonData.token);",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"theatre_id\": {{admin_theatre_id}},\n    \"api_username\": \"{{admin_api_username}}\",\n    \"api_password\": \"{{admin_api_password}}\",\n    \"api_secret\": \"{{admin_api_secret}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/auth/token/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"auth",
+										"token",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "theatre_audi",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Token {{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"audi_name\": \"audi 1\",\n    \"audi_total_seat\": \"100\",\n    \"row\": \"1\",\n    \"column\": \"2\",\n    \"audi_seat_type\":\"Normal\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/admin/theatre_audi/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"admin",
+										"theatre_audi",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "movie add",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Token {{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"movie_name\": \"movie name\",\n    \"movie_type\": \"2D\",\n    \"duration\": \"100\",\n    \"image\":\"link.jpg\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/admin/movie_info/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"admin",
+										"movie_info",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show add",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Token {{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"movie_id\": \"1\",\n    \"audi_id\": \"1\",\n    \"startTime\": \"100\",\n    \"show_status\": \"active\",\n    \"ticket_price\": \"10\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/admin/show/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"admin",
+										"show",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "thirdparty",
+			"item": [
+				{
+					"name": "thirdparty_token_generate",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"ttoken\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n        \"api_username\": \"{{thirdparty_api_username}}\",\n        \"api_password\": \"{{thirdparty_api_password}}\",\n        \"api_secret\": \"{{thirdparty_api_secret}}\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/auth",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get theatre",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"i = 0",
+									"postman.setEnvironmentVariable(\"theatre_id\", jsonData.data[i].theatre_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/theatre_list",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"theatre_list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get audi",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"i = 0",
+									"postman.setEnvironmentVariable(\"audi_id\", jsonData.data[i].audi_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"theatre_id\":{{theatre_id}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/theatre_audi",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"theatre_audi"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get movie list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"i = 0",
+									"postman.setEnvironmentVariable(\"movie_id\", jsonData.data[i].movie_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"theatre_id\":{{theatre_id}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/get_movie",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"get_movie"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get show",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"i = 0",
+									"postman.setEnvironmentVariable(\"show_id\", jsonData.data[i].show_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"theatre_id\":{{theatre_id}},\n    \"movie_id\":{{movie_id}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/get_show",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"get_show"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get seat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"i = 0",
+									"postman.setEnvironmentVariable(\"audi_id\", jsonData.data[i].audi_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"theatre_id\":{{theatre_id}},\n    \"audi_id\":{{audi_id}}, \n    \"movie_id\":{{movie_id}}, \n    \"show_id\":{{show_id}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/get_seat",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"get_seat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "seat_hold",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"show_id\":\"{{show_id}}\",\n    \"seat_name\": [\"1-1-audi1-B1\", \"1-1-audi1-B2\"],\n    \"transaction_id\": \"test_txn\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/seat_hold/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"seat_hold",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "seat_hold detail",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"show_id\":{{show_id}},\n    \"transaction_id\": \"test_txn3\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/seat_hold_details/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"seat_hold_details",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "purchase_ticket",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{ttoken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"show_id\": {{show_id}},\n    \"transaction_id\": \"test_txn8\",\n    \"amount\": 20\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/thirdparty/purchase_ticket/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"thirdparty",
+								"purchase_ticket",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}

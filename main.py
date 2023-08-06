@@ -1,12 +1,8 @@
-from fastapi import FastAPI, Depends
-from pydantic import BaseModel
-from fastapi.responses import JSONResponse
-from database import SessionLocal, engine
-from sqlalchemy.orm import Session
-import models
+from fastapi import FastAPI
+from database import engine
 import database
 
-from router_admin.auth import auth_router
+
 from router_admin.create_token import token_router
 from router_admin.theatre_info_and_auth import add_theatre_and_create_auth_data_router
 from router_admin.theatre_audi import theatre_audi_router_and_seat_detail
