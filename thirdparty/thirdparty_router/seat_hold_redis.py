@@ -298,6 +298,7 @@ def seat_hold(
                     "seat_hold_expire_datetime": str(seat_hold_expire_datetime),
                     "transaction_id": transaction_id,
                     "api_username": authenticate["api_username"],
+                    "amount":show_model.ticket_price
                 }
                 redis_client.setex(redis_key, 600, json.dumps(seat_hold_json))
 
@@ -420,15 +421,13 @@ def seat_hold_details(
         )
 
 
-@seat_hold_router.post("/seat_hold_details_redis")
-def seat_hold_details_redis(
-    details: seat_hold_detail_schema,
-    db: session = Depends(get_db),
-    authenticate=Depends(auth.thirdparty_auth),
-):
-    keys = redis_client.scan_iter(match="*", count=100)
+def seat_hold_data_by_txnid_seatname_apiusername(txnid, apiusername):
+    
+    keys = redis_client.scan_iter(match="*", count=100) 
+
     all_data = {}
     filtered_data = {}
+
     for key in keys:
         value = redis_client.get(key)
 
@@ -438,28 +437,25 @@ def seat_hold_details_redis(
         try:
             json_data = json.loads(value)
             all_data[key.decode("utf-8")] = json_data
-
             for key, value in all_data.items():
-                if authenticate["api_username"] == value["api_username"]:
-                    if (
-                        value["show_id"] == details.show_id
-                        and value["transaction_id"] == details.transaction_id
-                    ):
-                        filtered_data[key] = value
-
-                    else:
-                        raise HTTPException(
-                            status_code=400,
-                            detail="Transaction_id or show_id invalid. Cound not find show id and transaction_id.",
-                        )
-                else:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Invalid username for show id and transaction id.",
-                    )
+                if value["transaction_id"] == txnid and value["api_username"] == apiusername:
+                    filtered_data[key] = value 
 
         except json.JSONDecodeError:
             all_data[key.decode("utf-8")] = value
+    return (filtered_data)
+
+
+@seat_hold_router.post("/seat_hold_details_redis")
+def seat_hold_details_redis(
+    details: seat_hold_detail_schema,
+    db: session = Depends(get_db),
+    authenticate=Depends(auth.thirdparty_auth),
+):  
+        
+    
+    filtered_data = seat_hold_data_by_txnid_seatname_apiusername(txnid=details.transaction_id, apiusername=authenticate['api_username'])
+
     return filtered_data
 
 
@@ -469,16 +465,17 @@ def seat_hold_details_redis(
 #     authenticate=Depends(auth.thirdparty_auth),):
 
 
-def seat_hold_release(details, db, authenticate):
+def seat_hold_release_redis(seat_name):
     keys = redis_client.scan_iter(match="*", count=100)
     all_data = {}
     for key in keys:
-        value = redis_client.get(key)
-        if key == details["seat_name"]:
+        print ("key", key)
+        print ("seat_name", seat_name)
+        if key == seat_name:
             redis_client.delete(key)
 
-            return True
-        else:
-            raise HTTPException(
-                status_code=400, detail="Seat cannot be removed from seat hold."
-            )
+    return True
+        # else:
+        #     raise HTTPException(
+        #         status_code=400, detail="Seat cannot be removed from seat hold."
+        #     )

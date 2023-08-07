@@ -126,23 +126,23 @@ class show_model(_database.Base):
     )
 
 
-class seat_hold_model(_database.Base):
-    __tablename__ = "seat_hold"
+# class seat_hold_model(_database.Base):
+#     __tablename__ = "seat_hold"
 
-    seat_hold_id = sqlalchemy.Column(
-        sqlalchemy.Integer, primary_key=True, autoincrement=True
-    )
-    seat_name = sqlalchemy.Column(
-        sqlalchemy.String, sqlalchemy.ForeignKey("seat_detail.seat_name")
-    )
-    show_id = sqlalchemy.Column(sqlalchemy.Integer)
-    exipry_time = sqlalchemy.Column(sqlalchemy.DateTime)
-    transaction_id = sqlalchemy.Column(sqlalchemy.String)
-    api_username = sqlalchemy.Column(sqlalchemy.String)
+#     seat_hold_id = sqlalchemy.Column(
+#         sqlalchemy.Integer, primary_key=True, autoincrement=True
+#     )
+#     seat_name = sqlalchemy.Column(
+#         sqlalchemy.String, sqlalchemy.ForeignKey("seat_detail.seat_name")
+#     )
+#     show_id = sqlalchemy.Column(sqlalchemy.Integer)
+#     exipry_time = sqlalchemy.Column(sqlalchemy.DateTime)
+#     transaction_id = sqlalchemy.Column(sqlalchemy.String)
+#     api_username = sqlalchemy.Column(sqlalchemy.String)
 
-    relation: Mapped["seat_detail_model"] = relationship(
-        "seat_detail_model", backref="seat_hold"
-    )
+#     relation: Mapped["seat_detail_model"] = relationship(
+#         "seat_detail_model", backref="seat_hold"
+#     )
 
 
 class purchase_ticket_model(_database.Base):
