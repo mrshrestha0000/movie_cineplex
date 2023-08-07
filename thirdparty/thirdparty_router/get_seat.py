@@ -1,6 +1,6 @@
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, HTTPException
 from pydantic import BaseModel
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 
 from router_admin.auth import auth_router
 from database import SessionLocal, engine
@@ -13,6 +13,10 @@ from router_admin.base import get_db
 from thirdparty.thirdparty_models import thirdparty_models
 from datetime import datetime
 from sqlalchemy import and_
+import redis, json
+
+
+redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)
 
 auth = auth_class()
 
@@ -30,11 +34,11 @@ def seat_list(details, db):
         )
         .all()
     )
-    seat_hold_model = (
-        db.query(models.seat_hold_model)
-        .filter(models.seat_hold_model.show_id == details["show_id"])
-        .all()
-    )
+    # seat_hold_model = (
+    #     db.query(models.seat_hold_model)
+    #     .filter(models.seat_hold_model.show_id == details["show_id"])
+    #     .all()
+    # )
     purchase_ticket_model = (
         db.query(models.purchase_ticket_model)
         .filter(models.purchase_ticket_model.show_id == details["show_id"])
@@ -42,16 +46,21 @@ def seat_list(details, db):
     )
 
     if seat_detail_model is None:
-        return JSONResponse(
-            content={"status": 999, "message": "seat not found"}, status_code=400
-        )
+        raise HTTPException(status_code=400, detail="seat not found")
 
     else:
         list_seat = []
+        seat_hold_seat_names = []
 
-        seat_hold_seat_names = {i.seat_name for i in seat_hold_model}
+        keys = redis_client.scan_iter(match="*", count=100)
+        for key in keys:
+            # print(key)
+            a = key.decode("utf-8")
+            seat_hold_seat_names.append(a)
+
         purchase_ticket_seat_names = {i.seat_name for i in purchase_ticket_model}
 
+        # print("purchase_ticket_seat_names", purchase_ticket_seat_names)
         for i in seat_detail_model:
             if i.seat_name in seat_hold_seat_names:
                 single_seat = {

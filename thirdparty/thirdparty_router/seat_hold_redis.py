@@ -49,6 +49,78 @@ def validate_seat_avaibility(details, seat_name: list, db, authenticate):
             return True
 
 
+# constructor_for_seat_list = {
+#     "theatre_id": show_model.theatre_id,
+#     "audi_id": show_model.audi_id,
+#     "movie_id": show_model.movie_id,
+#     "show_id": show_model.show_id,
+#     "transaction_id": details.transaction_id,
+# }
+
+
+# seat_available = validate_seat_avaibility(
+#     constructor_for_seat_list, seat_name, db, authenticate
+# )
+def validate_seat_avaibility_redis(details, seat_name: list, db, authenticate):
+    for i in range(len(seat_name)):
+        list_of_seat = seat_list(details, db)
+        # print("list_of_seat", list_of_seat)
+
+        keys = redis_client.scan_iter(match="*", count=100)
+        all_data = {}
+        seat_hold_model = []
+        for key in keys:
+            value = redis_client.get(key)
+            if isinstance(value, bytes):
+                value = value.decode("utf-8")
+
+            try:
+                json_data = json.loads(value)
+                all_data[key.decode("utf-8")] = json_data
+
+                for key, value in all_data.items():
+                    if value.get("api_username") is None:
+                        continue
+                    if authenticate["api_username"] == value["api_username"]:
+                        seat_hold_model.append(value)
+
+            except json.JSONDecodeError:
+                all_data[key.decode("utf-8")] = value
+
+        # seat_hold_model = (
+        #     db.query(models.seat_hold_model)
+        #     .filter(models.seat_hold_model.transaction_id == details["transaction_id"])
+        #     .all()
+        # )
+
+        # seat_hold_model_redis = {}
+
+        for k in seat_hold_model:
+            print("seat_hold_model", k)
+            if k["transaction_id"] == details["transaction_id"]:
+                raise HTTPException(status_code=400, detail="Duplicate txn id.")
+
+        a = []
+        for j in list_of_seat:
+            if seat_name[i] == j["seat_name"]:
+                if (
+                    j["seat_status"] == int(2)
+                    or j["seat_status"] == int(3)
+                    or j["seat_status"] == int(4)
+                ):
+                    raise HTTPException(
+                        status_code=400, detail="Seat cannot be selected."
+                    )
+                if j["seat_status"] == int(1):
+                    a.append(j["seat_name"])
+
+        if a == []:
+            raise HTTPException(status_code=400, detail="Seat name not found")
+
+        else:
+            return True
+
+
 class seat_hold_schema(BaseModel):
     show_id: int
     seat_name: list
@@ -128,8 +200,8 @@ def seat_hold(
 
                 selected_seat.append(seat_name[i])
 
-                db.add(seat_hold_model)
-                db.commit()
+                # db.add(seat_hold_model)
+                # db.commit()
 
         return JSONResponse(
             content={
@@ -167,10 +239,10 @@ def seat_hold(
         selected_seat = []
         redis_key_data = []
 
-        if show_model is None:
-            return JSONResponse(
-                content={"status": 999, "error": "Invalid show id."}, status_code=400
-            )
+        # if show_model is None:
+        #     return JSONResponse(
+        #         content={"status": 999, "error": "Invalid show id."}, status_code=400
+        #     )
 
         constructor_for_seat_list = {
             "theatre_id": show_model.theatre_id,
@@ -180,9 +252,11 @@ def seat_hold(
             "transaction_id": details.transaction_id,
         }
 
-        seat_available = validate_seat_avaibility(
+        seat_available = validate_seat_avaibility_redis(
             constructor_for_seat_list, seat_name, db, authenticate
         )
+
+        print("seat_available", seat_available)
 
         for i in range(len(seat_name)):
             seat_detail_model = (
@@ -190,23 +264,24 @@ def seat_hold(
                 .filter(models.seat_detail_model.seat_name == seat_name[i])
                 .first()
             )
-            show_model = (
-                db.query(models.show_model)
-                .filter(models.show_model.show_id == show_id)
-                .first()
-            )
-            seat_hold_model = models.seat_hold_model()
+            # show_model = (
+            #     db.query(models.show_model)
+            #     .filter(models.show_model.show_id == show_id)
+            #     .first()
+            # )
+            # seat_hold_model = models.seat_hold_model()
 
-            if seat_detail_model is None:
-                return JSONResponse(
-                    content={"error": "Inavlid seat name", "status": 999},
-                    status_code=400,
-                )
+            # if seat_detail_model is None:
+            #     return JSONResponse(
+            #         content={"error": "Inavlid seat name", "status": 999},
+            #         status_code=400,
+            #     )
 
             if seat_detail_model is not None:
                 current_datetime = datetime.now()
                 seat_hold_expire_datetime = current_datetime + timedelta(minutes=10)
 
+                print("seat_name", seat_name[i])
                 redis_key = f"{seat_name[i]}"
 
                 # seat_hold_model.show_id = show_id
@@ -215,19 +290,22 @@ def seat_hold(
                 # seat_hold_model.transaction_id = transaction_id
                 # seat_hold_model.api_username = authenticate["api_username"]
 
+                # print("authenticate", authenticate["api_username"])
+
                 seat_hold_json = {
                     "seat_name": seat_name[i],
                     "show_id": show_id,
                     "seat_hold_expire_datetime": str(seat_hold_expire_datetime),
                     "transaction_id": transaction_id,
+                    "api_username": authenticate["api_username"],
                 }
                 redis_client.setex(redis_key, 600, json.dumps(seat_hold_json))
 
                 selected_seat.append(seat_name[i])
                 redis_key_data.append(redis_key)
 
-            print("selected_seat", selected_seat)
-            print("redis_key_data", redis_key_data)
+            # print("selected_seat", selected_seat)
+            # print("redis_key_data", redis_key_data)
 
         return JSONResponse(
             content={
@@ -246,6 +324,7 @@ def seat_hold(
         )
 
 
+#  seat_hold_details_function(authenticate, details, db)
 def seat_hold_details_function(authenticate, details, db):
     seat_hold_model = (
         db.query(models.seat_hold_model)
@@ -277,7 +356,6 @@ def seat_hold_details_function(authenticate, details, db):
             raise HTTPException(
                 status_code=400, detail="Invalid api_usernme. Check token."
             )
-    print("seat_hold_data", seat_hold_data)
     return seat_hold_data
 
 
@@ -299,8 +377,8 @@ def seat_hold_details_function_redis(authenticate, details, db):
 
     for i in seat_hold_model:
         if authenticate["api_username"] == i.api_username:
-            print("details.transaction_id", details.transaction_id)
-            print("i.transaction_id", i.transaction_id)
+            # print("details.transaction_id", details.transaction_id)
+            # print("i.transaction_id", i.transaction_id)
             if details.transaction_id == i.transaction_id:
                 single_seat_hold_data = {
                     "seat_name": i.seat_name,
@@ -314,7 +392,7 @@ def seat_hold_details_function_redis(authenticate, details, db):
             raise HTTPException(
                 status_code=400, detail="Invalid api_usernme. Check token."
             )
-    print("seat_hold_data", seat_hold_data)
+    # print("seat_hold_data", seat_hold_data)
     return seat_hold_data
 
 
@@ -343,9 +421,14 @@ def seat_hold_details(
 
 
 @seat_hold_router.post("/seat_hold_details_redis")
-def seat_hold_details_redis():
+def seat_hold_details_redis(
+    details: seat_hold_detail_schema,
+    db: session = Depends(get_db),
+    authenticate=Depends(auth.thirdparty_auth),
+):
     keys = redis_client.scan_iter(match="*", count=100)
     all_data = {}
+    filtered_data = {}
     for key in keys:
         value = redis_client.get(key)
 
@@ -356,13 +439,46 @@ def seat_hold_details_redis():
             json_data = json.loads(value)
             all_data[key.decode("utf-8")] = json_data
 
+            for key, value in all_data.items():
+                if authenticate["api_username"] == value["api_username"]:
+                    if (
+                        value["show_id"] == details.show_id
+                        and value["transaction_id"] == details.transaction_id
+                    ):
+                        filtered_data[key] = value
+
+                    else:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Transaction_id or show_id invalid. Cound not find show id and transaction_id.",
+                        )
+                else:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid username for show id and transaction id.",
+                    )
+
         except json.JSONDecodeError:
             all_data[key.decode("utf-8")] = value
-
-    return all_data
+    return filtered_data
 
 
 # @seat_hold_router.post("/get_data_by_show_id_and_txn_id")
 # def get_data_by_show_id_and_txn_id( details: seat_hold_detail_schema,
 #     db: session = Depends(get_db),
 #     authenticate=Depends(auth.thirdparty_auth),):
+
+
+def seat_hold_release(details, db, authenticate):
+    keys = redis_client.scan_iter(match="*", count=100)
+    all_data = {}
+    for key in keys:
+        value = redis_client.get(key)
+        if key == details["seat_name"]:
+            redis_client.delete(key)
+
+            return True
+        else:
+            raise HTTPException(
+                status_code=400, detail="Seat cannot be removed from seat hold."
+            )
